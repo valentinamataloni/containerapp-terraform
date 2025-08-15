@@ -40,18 +40,33 @@ pipeline {
       }
     }
 
+    stage('Verificar archivos Docker') {
+      steps {
+        powershell '''
+          Write-Host "📂 Listando archivos del workspace..."
+          Get-ChildItem -Recurse
+
+          Write-Host "🔍 Buscando Dockerfile..."
+          if (Test-Path "docker/Dockerfile") {
+            Write-Host "✅ Dockerfile encontrado en docker/Dockerfile"
+          } else {
+            Write-Error "❌ No se encontró docker/Dockerfile. Revisa la estructura del repo."
+            exit 1
+          }
+        '''
+      }
+    }
+
     stage('Build and Push Docker Image') {
-    steps {
+      steps {
         powershell '''
           $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
           az acr login --name $env:ACR_NAME
           docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" -f docker/Dockerfile docker
           docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
         '''
+      }
     }
-}
-
-
 
     stage('Output Container App URL') {
       steps {
@@ -59,4 +74,4 @@ pipeline {
       }
     }
   }
-} 
+}
