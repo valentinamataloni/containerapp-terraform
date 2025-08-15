@@ -41,17 +41,17 @@ pipeline {
     }
 
     stage('Verificar archivos Docker') {
-  steps {
-    powershell '''
-      Write-Host "📂 Workspace actual: $PWD"
-      Write-Host "📂 Listando archivos del workspace..."
-      Get-ChildItem -Recurse
+      steps {
+        powershell '''
+          Write-Host "📂 Workspace actual: $PWD"
+          Write-Host "📂 Listando archivos del workspace..."
+          Get-ChildItem -Recurse
 
-      Write-Host "🔍 Buscando Dockerfile..."
-      Get-ChildItem -Recurse -Filter "Dockerfile"
-    '''
-  }
-}
+          Write-Host "🔍 Buscando Dockerfile..."
+          Get-ChildItem -Recurse -Filter "Dockerfile"
+        '''
+      }
+    }
 
     stage('Build and Push Docker Image') {
       steps {
