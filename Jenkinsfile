@@ -24,36 +24,36 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        sh 'terraform init'
-        sh 'terraform apply -auto-approve'
+        powershell '''
+          terraform init
+          terraform apply -auto-approve
+        '''
       }
     }
 
     stage('Azure Login & ACR Login') {
       steps {
-        sh '''
-          az login --service-principal -u $TF_VAR_client_id -p $TF_VAR_client_secret --tenant $TF_VAR_tenant_id
-          az acr login --name $ACR_NAME
+        powershell '''
+          az login --service-principal -u $env:TF_VAR_client_id -p $env:TF_VAR_client_secret --tenant $env:TF_VAR_tenant_id
+          az acr login --name $env:ACR_NAME
         '''
       }
     }
 
     stage('Build and Push Docker Image') {
       steps {
-        sh '''
-          ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
-          docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
-          docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+        powershell '''
+          $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
+          docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" .
+          docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
         '''
       }
     }
 
     stage('Output Container App URL') {
       steps {
-        sh 'terraform output container_app_url'
+        powershell 'terraform output container_app_url'
       }
     }
   }
-}
-
-    
+} 
