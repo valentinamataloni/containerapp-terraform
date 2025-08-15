@@ -9,13 +9,14 @@ pipeline {
     TF_VAR_tenant_id       = credentials('azure-tenant-id')
 
     // Variables de ACR y Docker
-    ACR_NAME        = 'acrvmataloni'
-    IMAGE_NAME      = 'nginx-app'
-    IMAGE_TAG       = 'latest'
-    RESOURCE_GROUP  = 'rg-vmataloni'
+    ACR_NAME       = 'acrvmataloni'
+    IMAGE_NAME     = 'nginx-app'
+    IMAGE_TAG      = 'latest'
+    RESOURCE_GROUP = 'rg-vmataloni'
   }
 
   stages {
+
     stage('Debug Jenkins Secrets') {
       steps {
         echo "TF_VAR_client_secret length: ${TF_VAR_client_secret.length()} chars"
@@ -42,13 +43,19 @@ pipeline {
 
     stage('Build and Push Docker Image') {
       steps {
-        dir('docker') {
-          powershell '''
-            $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
-            docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" .
-            docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
-          '''
-        }
+        powershell '''
+          $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
+          docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" -f docker/Dockerfile docker
+          docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
+        '''
+      }
+    }
+
+    stage('Deploy Container App') {
+      steps {
+        powershell '''
+          terraform apply -auto-approve
+        '''
       }
     }
 
@@ -59,3 +66,4 @@ pipeline {
     }
   }
 }
+
