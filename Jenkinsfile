@@ -40,15 +40,17 @@ pipeline {
       }
     }
 
-   stage('Build and Push Docker Image') {
-    steps {
-        powershell '''
-          $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
-          docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" -f docker/Dockerfile docker
-          docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
-        '''
+    stage('Build and Push Docker Image') {
+      steps {
+        dir('docker') {
+          powershell '''
+            $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
+            docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" .
+            docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
+          '''
+        }
+      }
     }
-}
 
     stage('Output Container App URL') {
       steps {
