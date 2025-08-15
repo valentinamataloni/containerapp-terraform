@@ -42,14 +42,19 @@ pipeline {
     }
 
     stage('Build and Push Docker Image') {
-      steps {
+    steps {
         powershell '''
+          # Obtener el login server del ACR
           $ACR_LOGIN_SERVER = az acr show --name $env:ACR_NAME --query loginServer -o tsv
-          docker build -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" -f docker/Dockerfile docker
+
+          # Forzar build de la imagen sin usar cache
+          docker build --no-cache -t "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG" -f docker/Dockerfile docker
+
+          # Push de la imagen al ACR
           docker push "$ACR_LOGIN_SERVER/$env:IMAGE_NAME:$env:IMAGE_TAG"
         '''
-      }
     }
+}
 
     stage('Deploy Container App') {
       steps {
