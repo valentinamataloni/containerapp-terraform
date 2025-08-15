@@ -13,7 +13,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "4dc63939-80f6-4f50-bd19-bc605cf2786d"
+  subscription_id = var.subscription_id
 }
 
 # Sufijo para evitar nombres duplicados
@@ -24,8 +24,8 @@ resource "random_integer" "suffix" {
 
 # 1 - Resource Group
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-containerapp-${random_integer.suffix.result}"
-  location = "eastus2"
+  name     = var.resource_group_name
+  location = var.location
 }
 
 # 2 - Log Analytics Workspace
@@ -45,24 +45,43 @@ resource "azurerm_container_app_environment" "env" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 }
 
-# 4 - Container App
+# 4 - Datos del ACR existente
+data "azurerm_container_registry" "acr" {
+  name                = var.acr_name
+  resource_group_name = var.resource_group_name
+}
+
+# 5 - User Assigned Identity
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "identity-acr-${random_integer.suffix.result}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+}
+
+# 6 - Container App con User Assigned Identity
 resource "azurerm_container_app" "app" {
   name                         = "my-container-app-${random_integer.suffix.result}"
   container_app_environment_id = azurerm_container_app_environment.env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.identity.id]
+  }
+
+  registry {
+  server   = var.acr_server
+  identity = azurerm_user_assigned_identity.identity.id
+}
+
+
   template {
     container {
-      name = "valentina-mysql"
-      image  = "docker.io/valenmataloni/valentina-mysql:latest"
+      name   = "nginx-app"
+      image  = "${var.acr_server}/nginx-app:latest"
       cpu    = 0.5
       memory = "1Gi"
-
-      env {
-        name  = "ENVIRONMENT"
-        value = "production"
-      }
     }
 
     min_replicas = 1
@@ -71,7 +90,7 @@ resource "azurerm_container_app" "app" {
 
   ingress {
     external_enabled = true
-    target_port = 3306
+    target_port      = 80
     traffic_weight {
       latest_revision = true
       percentage      = 100
@@ -79,6 +98,14 @@ resource "azurerm_container_app" "app" {
   }
 }
 
+# 7 - Permiso de AcrPull para la identidad
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = data.azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.identity.principal_id
+}
+
+# 8 - Output
 output "container_app_url" {
   value = azurerm_container_app.app.ingress[0].fqdn
 }
