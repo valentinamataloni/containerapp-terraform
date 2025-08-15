@@ -79,7 +79,7 @@ resource "azurerm_container_app" "app" {
   template {
     container {
       name   = "nginx-app"
-      image  = "${var.acr_server}/nginx-app:latest"
+      image  = "${var.acr_server}/nginx-app:${random_integer.suffix.result}"
       cpu    = 0.5
       memory = "1Gi"
     }
