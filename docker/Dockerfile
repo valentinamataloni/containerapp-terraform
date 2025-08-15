@@ -1,7 +1,8 @@
+# Usamos nginx en Alpine
 FROM nginx:alpine
 
-# Copiar tu index.html al directorio por defecto de Nginx
+# Copiamos el index.html al directorio que nginx sirve
 COPY index.html /usr/share/nginx/html/index.html
 
-# Exponer el puerto 80 (opcional, buena práctica)
+# Exponemos el puerto 80
 EXPOSE 80
