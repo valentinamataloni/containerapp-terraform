@@ -11,7 +11,7 @@ pipeline {
     // Variables de ACR y Docker
     ACR_NAME       = 'acrvmataloni'
     IMAGE_NAME     = 'nginx-app'
-    IMAGE_TAG      = 'latest'
+    IMAGE_TAG = "${BUILD_NUMBER}"
     RESOURCE_GROUP = 'rg-vmataloni'
   }
 
