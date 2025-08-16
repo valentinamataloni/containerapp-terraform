@@ -51,7 +51,7 @@ variables.tf: Definición de variables utilizadas en la configuración de Terraf
 # ⚙️ Uso
 
 Clona el repositorio:
-git clone https://github.com/valentinamataloni/containerapp-terraform.git
+git clone https://github.com/valentinamataloni/ContainerApp-Terraform-Jenkins.git
 cd containerapp-terraform
 
 Inicializa Terraform:
