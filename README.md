@@ -1,4 +1,4 @@
-## ContainerApp con Terraform
+# Container App con Terraform y Despliegue en Jenkins
 
 Este repositorio contiene una configuración básica para desplegar una aplicación en Azure Container Apps utilizando Terraform. Es ideal para automatizar la infraestructura como código (IaC) y gestionar contenedores en la nube de forma eficiente.
 
@@ -99,3 +99,5 @@ Las etapas incluyen:
 - Mostrar URL de la aplicación
 
 - Accede a la aplicación desplegada mediante la URL que genera Terraform: my-container-app-XXXX.greendune-XXXX.eastus2.azurecontainerapps.io
+
+<img width="1310" height="280" alt="Jenkins pipeline" src="https://github.com/user-attachments/assets/4e28fc6a-11ee-47db-9168-2c72a12e89bb" />
